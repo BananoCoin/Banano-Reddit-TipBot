@@ -40,28 +40,24 @@ class Tipper:
                 usd = amount
                 formatted_usd = usd
                 amount = float(amount) / rate
-                formatted_amount = str(format(float(amount), '.6f'))
+                formatted_amount = str(format(float(amount), '.2f'))
             else:
                 usd = float(amount) * rate
                 formatted_usd = str(format(float(usd), '.3f'))
 
-<<<<<<< HEAD
             self.log.info("Sending amount: " + str(amount) + "BANANO")
-=======
-            self.log.info("Sending amount: " + str(amount) + "BANANO, $" + str(usd))
->>>>>>> 23d9a0b59b10af1aefceba98301419b94048875a
             data = {'action': 'account_balance',
                     'account': sender_user_address}
             post_body = self.rest_wallet.post_to_wallet(data, self.log)
-            data = {'action': 'uban_from_raw', 'amount': int(
+            data = {'action': 'banoshi_from_raw', 'amount': int(
                 post_body['balance'])}
             rai_balance = self.rest_wallet.post_to_wallet(data, self.log)
 
             # float of total send
             float_amount = float(amount)
             if float_amount > 0:
-                rai_send = float_amount * 1000000
-                raw_send = str(int(rai_send)) + '00000000000000000000000'
+                rai_send = float_amount * 100
+                raw_send = str(int(rai_send)) + '000000000000000000000000000'
                 self.log.info("Current rai balance: " + str(rai_balance['amount']))
 
                 # Add prior reply text to new
@@ -77,40 +73,24 @@ class Tipper:
                             'destination': receiving_address, 'amount': int(raw_send)}
                     post_body = self.rest_wallet.post_to_wallet(data, self.log)
                     reply_text = reply_text + \
-<<<<<<< HEAD
                                  'Tipped %s BANANO to /u/%s\n\n You can view this transaction on [BananoVault](https://vault.banano.co.in/transaction/%s)' \
                                  % (formatted_amount, receiving_user,
                                     str(post_body['block']))
                     reply_text = reply_text + "  \n\nGo to the [wiki]" + \
                                  "(https://np.reddit.com/r/bananocoin/wiki/start) for more info"
-=======
-                                 'Tipped %s BANANO or $%s to /u/%s\n\nUSD conversion rate of $%s per BANANO from [Coin Market Cap](https://coinmarketcap.com/currencies/banano/)\n\n[Block Link](https://vault.banano.co.in/transaction/%s)' \
-                                 % (formatted_amount, formatted_usd, receiving_user, formatted_rate,
-                                    str(post_body['block']))
-                    reply_text = reply_text + "  \n\nGo to the [wiki]" + \
-                                 "(https://np.reddit.com/r/banano_tipbot/wiki/start) for more info"
->>>>>>> 23d9a0b59b10af1aefceba98301419b94048875a
                 else:
                     reply_text = reply_text + 'Insufficient Banano! top up your account to tip'
 
                 self.comment_reply(comment, reply_text)
         except TypeError as e:
-<<<<<<< HEAD
             reply_message = 'Ooops, I seem to have broken.\n\n' + \
-=======
-            reply_message = 'An error came up, your request could not be processed\n\n' + \
->>>>>>> 23d9a0b59b10af1aefceba98301419b94048875a
                             ' Paging /u/chocolatefudcake error id: ' + comment.fullname + '\n\n'
             self.comment_reply(comment, reply_message)
             tb = traceback.format_exc()
             self.log.error(e)
             self.log.error(tb)
         except:
-<<<<<<< HEAD
             reply_message = 'Ooops, I seem to have broken.\n\n' + \
-=======
-            reply_message = 'An error came up, your request could not be processed\n\n' + \
->>>>>>> 23d9a0b59b10af1aefceba98301419b94048875a
                             ' Paging /u/chocolatefudcake error id: ' + comment.fullname + '\n\n'
             self.comment_reply(comment, reply_message)
             self.log.error("Unexpected error in send_tip: " + str(sys.exc_info()[0]))
@@ -162,11 +142,7 @@ class Tipper:
             self.log.info('Sender NOT in db')
             reply_text = 'Hi /u/' + str(comment.author.name) + ', please register by sending me a' \
                          + ' private message with the text "register" in the body of the message.  \n\nGo to the [wiki]' + \
-<<<<<<< HEAD
                          "(https://np.reddit.com/r/bananocoin/wiki/start) for more info"
-=======
-                         "(https://np.reddit.com/r/banano_tipbot/wiki/start) for more info"
->>>>>>> 23d9a0b59b10af1aefceba98301419b94048875a
 
             self.comment_reply(comment, reply_text)
 
@@ -221,15 +197,9 @@ class Tipper:
             else:
                 self.comment_reply(comment,
                                    'Tip command is invalid. Tip with any of the following formats:  \n\n' +
-<<<<<<< HEAD
                                    '`!tipbanano <username> <amount>`  \n\n`!ban <username> <amount>`  \n\n'
                                    + '`/u/banano_tipbot <username> <amount>`  \n\nGo to the [wiki]' +
                                    '(https://np.reddit.com/r/bananocoin/wiki/start) for more commands')
-=======
-                                   '`!tipbanano <username> <amount>`  \n\n`/u/Banano_TipBot <username> <amount>`  \n\n'
-                                   + '`/u/banano_tipbot <username> <amount>`  \n\nGo to the [wiki]' +
-                                   '(https://np.reddit.com/r/banano_tipbot/wiki/start) for more commands')
->>>>>>> 23d9a0b59b10af1aefceba98301419b94048875a
         record = dict(
             comment_id=comment.fullname, to=None, amount=None, author=comment.author.name)
         self.log.info("Inserting into db: " + str(record))

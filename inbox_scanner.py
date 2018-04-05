@@ -25,21 +25,17 @@ class InboxScanner:
             user_address = user_data['ban_address']
             data = {'action': 'account_balance', 'account': user_address}
             parsed_json = self.rest_wallet.post_to_wallet(data, self.log)
-            data = {'action': 'uban_from_raw', 'amount': int(parsed_json['balance'])}
+            data = {'action': 'banoshi_from_raw', 'amount': int(parsed_json['balance'])}
             rai_balance = self.rest_wallet.post_to_wallet(data, self.log)
 
-            rai_send = float(amount) * 1000000  # float of total send
-            raw_send = str(int(rai_send)) + '00000000000000000000000'
+            rai_send = float(amount) * 100  # float of total send
+            raw_send = str(int(rai_send)) + '000000000000000000000000000'
             # check amount left
             if int(rai_send) <= int(rai_balance['amount']):
                 data = {'action': 'send', 'wallet': self.wallet_id, 'source': user_address, 'destination': send_address,
                         'amount': int(raw_send)}
                 parsed_json = self.rest_wallet.post_to_wallet(data, self.log)
-<<<<<<< HEAD
                 reply_message = 'Successfully sent %s BANANO to %s\n\nYou can view this transaction on [BananoVault](https://vault.banano.co.in/transaction/%s)' % (
-=======
-                reply_message = 'Sent %s to %s\n\n[Block Link](https://vault.banano.co.in/transaction/%s)' % (
->>>>>>> 23d9a0b59b10af1aefceba98301419b94048875a
                     amount, send_address, str(parsed_json['block']))
                 item.reply(reply_message)
             else:
@@ -70,19 +66,14 @@ class InboxScanner:
         data = {'action': 'account_balance', 'account': user_address}
         parsed_json = self.rest_wallet.post_to_wallet(data, self.log)
 
-        data = {'action': 'uban_from_raw', 'amount': int(parsed_json['balance'])}
+        data = {'action': 'banoshi_from_raw', 'amount': int(parsed_json['balance'])}
         rai_balance = self.rest_wallet.post_to_wallet(data, self.log)
         self.log.info(rai_balance['amount'])
-        xrb_balance = format((float(rai_balance['amount']) / 1000000.0), '.6f')
+        xrb_balance = format((float(rai_balance['amount']) / 100.0), '.2f')
         rate = util.get_price()
         if rate is not None:
             usd = float(xrb_balance) * rate
-<<<<<<< HEAD
             reply_message = 'Your balance is :\n\n %s BANANO' % xrb_balance
-=======
-            reply_message = 'Your balance is :\n\n %s BANANO or $%s USD \n\nUSD conversion rate of $%s' % \
-                            (xrb_balance, str(format(float(usd), '.3f')), str(format(float(rate), '.3f')))
->>>>>>> 23d9a0b59b10af1aefceba98301419b94048875a
         else:
             reply_message = 'Your balance is :\n\n %s BANANO' % xrb_balance
         item.reply(reply_message)
@@ -119,11 +110,7 @@ class InboxScanner:
             comment.link_author = submission.author.name
 
         except:
-<<<<<<< HEAD
             reply_message = 'Ooops it seems I have broken.\n\n' + \
-=======
-            reply_message = 'An error came up, your request could not be processed\n\n' + \
->>>>>>> 23d9a0b59b10af1aefceba98301419b94048875a
                             ' Paging /u/chocolatefudcake error id: ' + item.name + '\n\n'
             item.reply(reply_message)
             self.log.error("Unexpected error: " + str(sys.exc_info()[0]))
@@ -168,11 +155,7 @@ class InboxScanner:
                                     reply_message = 'Help\n\n Reply with the command in the body of text:\n\n  balance - get' \
                                                     + ' your balance\n\n  send <amount> <address> - send BANANO to an external ' \
                                                       'address\n\naddress - get your deposit address\n\nMore info: ' \
-<<<<<<< HEAD
                                                     + 'https://np.reddit.com/r/bananocoin/wiki/start'
-=======
-                                                    + 'https://np.reddit.com/r/banano_tipbot/wiki/start'
->>>>>>> 23d9a0b59b10af1aefceba98301419b94048875a
                                     item.reply(reply_message)
 
                                 elif 'address' in item.body.lower():
@@ -192,21 +175,13 @@ class InboxScanner:
                                         reply_message = 'Sorry I could not parse your request.\n\nWhen making requests only put' + \
                                                         ' one command in the message body with no other text\n\nTry the "help"' + \
                                                         ' command\n\nMore info: ' \
-<<<<<<< HEAD
                                                         + 'https://np.reddit.com/r/bananocoin/wiki/start'
-=======
-                                                        + 'https://np.reddit.com/r/banano_tipbot/wiki/start'
->>>>>>> 23d9a0b59b10af1aefceba98301419b94048875a
                                         item.reply(reply_message)
 
                                 elif 'register' in item.body.lower():
                                     self.log.info("Already Registered")
                                     reply_message = 'Your account is already registered\n\nTry the "help" command\n\nMore info: ' \
-<<<<<<< HEAD
                                                     + 'https://np.reddit.com/r/bananocoin/wiki/start'
-=======
-                                                    + 'https://np.reddit.com/r/banano_tipbot/wiki/start'
->>>>>>> 23d9a0b59b10af1aefceba98301419b94048875a
                                     item.reply(reply_message)
 
                                 else:
@@ -214,11 +189,7 @@ class InboxScanner:
                                     reply_message = 'Sorry I could not parse your request.\n\nWhen making requests only put' + \
                                                     ' one command in the message body with no other text\n\nTry the "help"' + \
                                                     ' command\n\nMore info: ' \
-<<<<<<< HEAD
                                                     + 'https://np.reddit.com/r/bananocoin/wiki/start'
-=======
-                                                    + 'https://np.reddit.com/r/banano_tipbot/wiki/start'
->>>>>>> 23d9a0b59b10af1aefceba98301419b94048875a
                                     item.reply(reply_message)
                             else:
                                 self.log.info(str(item.author.name) + ' Not in DB')

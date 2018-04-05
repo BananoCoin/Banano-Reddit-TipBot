@@ -20,11 +20,7 @@ class CommentsScanner:
 
         try:
             for comment in subreddit_client.stream.comments():
-<<<<<<< HEAD
                 command = ['!ban', '!tipbanano']
-=======
-                command = ['!tip', '!tipbanano']
->>>>>>> 23d9a0b59b10af1aefceba98301419b94048875a
                 self.tipper.parse_comment(comment, command, False)
 
         except (praw.exceptions.PRAWException, prawcore.exceptions.PrawcoreException) as e:
