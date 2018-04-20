@@ -77,7 +77,7 @@ class Tipper:
                                  % (formatted_amount, receiving_user,
                                     str(post_body['block']))
                     reply_text = reply_text + "  \n\nGo to the [wiki]" + \
-                                 "(https://np.reddit.com/r/bananocoin/wiki/start) for more info"
+                                 "(https://np.reddit.com/r/bananocoin/wiki/reddit-tipbot) for more info"
                 else:
                     reply_text = reply_text + 'Insufficient Banano! top up your account to tip'
 
@@ -142,7 +142,7 @@ class Tipper:
             self.log.info('Sender NOT in db')
             reply_text = 'Hi /u/' + str(comment.author.name) + ', please register by sending me a' \
                          + ' private message with the text "register" in the body of the message.  \n\nGo to the [wiki]' + \
-                         "(https://np.reddit.com/r/bananocoin/wiki/start) for more info"
+                         "(https://np.reddit.com/r/bananocoin/wiki/reddit-tipbot) for more info"
 
             self.comment_reply(comment, reply_text)
 
@@ -192,14 +192,14 @@ class Tipper:
         if comment.author.name.lower() != 'banano_tipbot':
             if mention:
                 self.comment_reply(comment, 'Was I mentioned? I could not parse your request  \n\nGo to the [wiki]' +
-                                   '(https://np.reddit.com/r/banano_tipbot/wiki/start) to learn how to tip with' +
+                                   '(https://np.reddit.com/r/bananocoin/wiki/reddit-tipbot) to learn how to tip with' +
                                    ' BANANO')
             else:
                 self.comment_reply(comment,
                                    'Tip command is invalid. Tip with any of the following formats:  \n\n' +
                                    '`!tipbanano <username> <amount>`  \n\n`!ban <username> <amount>`  \n\n'
                                    + '`/u/banano_tipbot <username> <amount>`  \n\nGo to the [wiki]' +
-                                   '(https://np.reddit.com/r/bananocoin/wiki/start) for more commands')
+                                   '(https://np.reddit.com/r/bananocoin/wiki/reddit-tipbot) for more commands')
         record = dict(
             comment_id=comment.fullname, to=None, amount=None, author=comment.author.name)
         self.log.info("Inserting into db: " + str(record))
