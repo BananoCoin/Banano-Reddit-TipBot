@@ -22,12 +22,15 @@ class Tipper:
             comment.reply(reply_text)
         except Exception:
             self.log.info("BOT COMMENT REPLY FAILED, ATTEMPTING DM")
-            if dm_fallback is None:
-                # Send message to author of the comment
-                comment.author.message(dm_subject, reply_text)
-            else:
-                # Send message to dm_fallback
-                self.reddit_client.redditor(dm_fallback).message(dm_subject, reply_text)
+            try:
+                if dm_fallback is None:
+                    # Send message to author of the comment
+                    comment.author.message(dm_subject, reply_text)
+                else:
+                    # Send message to dm_fallback
+                    self.reddit_client.redditor(dm_fallback).message(dm_subject, reply_text)
+            except Exception as e:
+                self.log.exception(e)
             
     @staticmethod
     def is_usd(amount):
@@ -86,12 +89,19 @@ class Tipper:
                                     str(post_body['block']))
                     reply_text = reply_text + "  \n\nGo to the [wiki]" + \
                                  "(https://np.reddit.com/r/bananocoin/wiki/reddit-tipbot) for more info"
-                    dm_subject = 'You received a Banano tip from /u/%s' % comment.author.name
-                    self.comment_reply(comment, reply_text, dm_subject=dm_subject, dm_fallback=receiving_user)
+                    dm_subject = 'You tipped %s Banano to /u/%s' % (formatted_amount, comment.author.name)
+                    self.comment_reply(comment, reply_text, dm_subject=dm_subject)
+                    tip_received_text = 'You were tipped %s BANANO by /u/%s\n\n You can view this transaction on [BananoVault](https://vault.banano.co.in/transaction/%s)' \
+                                 % (formatted_amount, comment.author.name,
+                                    str(post_body['block']))
+                    tip_received_text = tip_received_text + "  \n\nGo to the [wiki]" + \
+                         "(https://np.reddit.com/r/bananocoin/wiki/reddit-tipbot) for more info"
+                    dm_subject = 'You were tipped %s Banano by /u/%s' % (formatted_amount, comment.author.name)
+                    self.reddit_client.redditor(receiving_user).message(dm_subject, tip_received_text)
                 else:
                     reply_text = reply_text + 'Insufficient Banano! top up your account to tip'
                     dm_subject='Could not send tip to /u/%s!' % receiving_user
-                    self.comment_reply(comment, reply_text, dm_subject=dm_subject)
+                self.comment_reply(comment, reply_text, dm_subject=dm_subject)
         except TypeError as e:
             reply_message = 'Ooops, I seem to have broken.\n\n' + \
                             ' Paging /u/chocolatefudcake error id: ' + comment.fullname + '\n\n'
