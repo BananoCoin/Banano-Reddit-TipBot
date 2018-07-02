@@ -24,10 +24,10 @@ class Tipper:
             self.log.info("BOT COMMENT REPLY FAILED, ATTEMPTING DM")
             if dm_fallback is None:
                 # Send message to author of the comment
-                comment.author.message(dm_subject, reply_text, from_subreddit='bananocoin')
+                comment.author.message(dm_subject, reply_text)
             else:
                 # Send message to dm_fallback
-                self.reddit_client.redditor(dm_fallback).message(dm_subject, reply_text, from_subreddit='bananocoin')
+                self.reddit_client.redditor(dm_fallback).message(dm_subject, reply_text)
             
     @staticmethod
     def is_usd(amount):
@@ -273,7 +273,7 @@ class Tipper:
                 subreddit_name = ''
 
             if author != "reddit" and author != "banano_tipbot" \
-                    and author != "automoderator" and subreddit_name.lower() != "cryptocurrency":
+                    and author != "automoderator":
                 length = len(parts_of_comment)
                 passing = False
 
