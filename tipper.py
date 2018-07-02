@@ -101,7 +101,7 @@ class Tipper:
                 else:
                     reply_text = reply_text + 'Insufficient Banano! top up your account to tip'
                     dm_subject='Could not send tip to /u/%s!' % receiving_user
-                self.comment_reply(comment, reply_text, dm_subject=dm_subject)
+                    self.comment_reply(comment, reply_text, dm_subject=dm_subject)
         except TypeError as e:
             reply_message = 'Ooops, I seem to have broken.\n\n' + \
                             ' Paging /u/chocolatefudcake error id: ' + comment.fullname + '\n\n'
