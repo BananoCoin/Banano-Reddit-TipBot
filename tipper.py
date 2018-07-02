@@ -15,12 +15,20 @@ class Tipper:
         self.rest_wallet = rest_wallet
         self.log = log
 
-    @util.handle_api_exceptions(max_attempts=3)
-    def comment_reply(self, comment, reply_text):
+    def comment_reply(self, comment, reply_text, dm_subject="Message from Banano TipBot", dm_fallback=None):
         self.log.info("BOT MAKING COMMENT REPLY:")
         self.log.info(reply_text)
-        comment.reply(reply_text)
-
+        try:
+            comment.reply(reply_text)
+        except Exception:
+            self.log.info("BOT COMMENT REPLY FAILED, ATTEMPTING DM")
+            if dm_fallback is None:
+                # Send message to author of the comment
+                comment.author.message(dm_subject, reply_text, from_subreddit='bananocoin')
+            else:
+                # Send message to dm_fallback
+                self.reddit_client.redditor(dm_fallback).message(dm_subject, reply_text, from_subreddit='bananocoin')
+            
     @staticmethod
     def is_usd(amount):
         if amount.startswith("$"):
@@ -78,21 +86,23 @@ class Tipper:
                                     str(post_body['block']))
                     reply_text = reply_text + "  \n\nGo to the [wiki]" + \
                                  "(https://np.reddit.com/r/bananocoin/wiki/reddit-tipbot) for more info"
+                    dm_subject = 'You received a Banano tip from /u/%s' % comment.author.name
+                    self.comment_reply(comment, reply_text, dm_subject=dm_subject, dm_fallback=receiving_user)
                 else:
                     reply_text = reply_text + 'Insufficient Banano! top up your account to tip'
-
-                self.comment_reply(comment, reply_text)
+                    dm_subject='Could not send tip to /u/%s!' % receiving_user
+                    self.comment_reply(comment, reply_text, dm_subject=dm_subject)
         except TypeError as e:
             reply_message = 'Ooops, I seem to have broken.\n\n' + \
                             ' Paging /u/chocolatefudcake error id: ' + comment.fullname + '\n\n'
-            self.comment_reply(comment, reply_message)
+            self.comment_reply(comment, reply_message, dm_subject='Reddit TipBot Error', dm_fallback='chocolatefudcake')
             tb = traceback.format_exc()
             self.log.error(e)
             self.log.error(tb)
         except:
             reply_message = 'Ooops, I seem to have broken.\n\n' + \
                             ' Paging /u/chocolatefudcake error id: ' + comment.fullname + '\n\n'
-            self.comment_reply(comment, reply_message)
+            self.comment_reply(comment, reply_message, dm_subject='Reddit TipBot Error', dm_fallback='chocolatefudcake')
             self.log.error("Unexpected error in send_tip: " + str(sys.exc_info()[0]))
             tb = traceback.format_exc()
             self.log.error(tb)
@@ -144,7 +154,7 @@ class Tipper:
                          + ' private message with the text "register" in the body of the message.  \n\nGo to the [wiki]' + \
                          "(https://np.reddit.com/r/bananocoin/wiki/reddit-tipbot) for more info"
 
-            self.comment_reply(comment, reply_text)
+            self.comment_reply(comment, reply_text, dm_subject='Not registered with Banano TipBot')
 
         # Add to db
         record = dict(
