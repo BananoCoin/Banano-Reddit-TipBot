@@ -6,6 +6,7 @@ import prawcore
 
 import util
 
+import time
 
 class InboxScanner:
 
@@ -35,7 +36,7 @@ class InboxScanner:
                 data = {'action': 'send', 'wallet': self.wallet_id, 'source': user_address, 'destination': send_address,
                         'amount': int(raw_send)}
                 parsed_json = self.rest_wallet.post_to_wallet(data, self.log)
-                reply_message = 'Successfully sent %s BANANO to %s\n\nYou can view this transaction on [BananoVault](https://vault.banano.co.in/transaction/%s)' % (
+                reply_message = 'Successfully sent %s BANANO to %s\n\nYou can view this transaction on [BananoVault](https://vault.banano.cc/transaction/%s)' % (
                     amount, send_address, str(parsed_json['block']))
                 item.reply(reply_message)
             else:
@@ -88,7 +89,7 @@ class InboxScanner:
         self.log.info("Inserting into db: " + str(record))
         user_table.insert(record)
         # Reply
-        explorer_link = 'https://vault.banano.co.in/account/' + parsed_json['account']
+        explorer_link = 'https://vault.banano.cc/account/' + parsed_json['account']
         reply_message = 'Thanks for registering, your deposit address is ' + parsed_json['account'] + \
                         ' and you can see your balance here ' + explorer_link + '\r\nFor more details reply with "help"'
 
@@ -121,12 +122,11 @@ class InboxScanner:
             self.tipper.parse_comment(comment, command, True)
 
     def parse_item(self, item):
-        self.log.info("\n\n")
         self.log.info("New Inbox Received")
         message_table = self.db['message']
 
         if message_table.find_one(message_id=item.name):
-            self.log.info('Already in db, ignore')
+            self.log.info("Already in db, ignore \n")
         else:
             author_obj = item.author
             if author_obj is not None:
@@ -155,7 +155,7 @@ class InboxScanner:
                                     reply_message = 'Help\n\n Reply with the command in the body of text:\n\n  balance - get' \
                                                     + ' your balance\n\n  send <amount> <address> - send BANANO to an external ' \
                                                       'address\n\naddress - get your deposit address\n\nMore info: ' \
-                                                    + 'https://np.reddit.com/r/bananocoin/wiki/reddit-tipbot'
+                                                    + 'https://np.reddit.com/r/banano/wiki/reddit-tipbot'
                                     item.reply(reply_message)
 
                                 elif 'address' in item.body.lower():
@@ -175,13 +175,13 @@ class InboxScanner:
                                         reply_message = 'Sorry I could not parse your request.\n\nWhen making requests only put' + \
                                                         ' one command in the message body with no other text\n\nTry the "help"' + \
                                                         ' command\n\nMore info: ' \
-                                                        + 'https://np.reddit.com/r/bananocoin/wiki/reddit-tipbot'
+                                                        + 'https://np.reddit.com/r/banano/wiki/reddit-tipbot'
                                         item.reply(reply_message)
 
                                 elif 'register' in item.body.lower():
                                     self.log.info("Already Registered")
                                     reply_message = 'Your account is already registered\n\nTry the "help" command\n\nMore info: ' \
-                                                    + 'https://np.reddit.com/r/bananocoin/wiki/reddit-tipbot'
+                                                    + 'https://np.reddit.com/r/banano/wiki/reddit-tipbot'
                                     item.reply(reply_message)
 
                                 else:
@@ -189,7 +189,7 @@ class InboxScanner:
                                     reply_message = 'Sorry I could not parse your request.\n\nWhen making requests only put' + \
                                                     ' one command in the message body with no other text\n\nTry the "help"' + \
                                                     ' command\n\nMore info: ' \
-                                                    + 'https://np.reddit.com/r/bananocoin/wiki/reddit-tipbot'
+                                                    + 'https://np.reddit.com/r/banano/wiki/reddit-tipbot'
                                     item.reply(reply_message)
                             else:
                                 self.log.info(str(item.author.name) + ' Not in DB')
@@ -215,7 +215,7 @@ class InboxScanner:
                 record = dict(user_id=None, message_id=item.name)
 
             # Add message to database
-            self.log.info("Inserting into db: " + str(record))
+            self.log.info("Inserting DM into 'message' db table: " + str(record))
             message_table.insert(record)
 
     def scan_inbox(self):
@@ -232,4 +232,5 @@ class InboxScanner:
 
     def run_scan_loop(self):
         while 1:
+            time.sleep(5)
             self.scan_inbox()
