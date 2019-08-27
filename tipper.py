@@ -84,18 +84,18 @@ class Tipper:
                             'destination': receiving_address, 'amount': int(raw_send)}
                     post_body = self.rest_wallet.post_to_wallet(data, self.log)
                     reply_text = reply_text + \
-                                 'Tipped %s BANANO to /u/%s\n\n You can view this transaction on [BananoVault](https://vault.banano.co.in/transaction/%s)' \
+                                 'Tipped %s BANANO to %s\n\n You can view this transaction on [BananoVault](https://vault.banano.cc/transaction/%s)' \
                                  % (formatted_amount, receiving_user,
                                     str(post_body['block']))
                     reply_text = reply_text + "  \n\nGo to the [wiki]" + \
-                                 "(https://np.reddit.com/r/bananocoin/wiki/reddit-tipbot) for more info"
+                                 "(https://np.reddit.com/r/banano/wiki/reddit-tipbot) for more info"
                     dm_subject = 'You tipped %s Banano to /u/%s' % (formatted_amount, comment.author.name)
                     self.comment_reply(comment, reply_text, dm_subject=dm_subject)
-                    tip_received_text = 'You were tipped %s BANANO by /u/%s\n\n You can view this transaction on [BananoVault](https://vault.banano.co.in/transaction/%s)' \
+                    tip_received_text = 'You were tipped %s BANANO by /u/%s\n\n You can view this transaction on [BananoVault](https://vault.banano.cc/transaction/%s)' \
                                  % (formatted_amount, comment.author.name,
                                     str(post_body['block']))
                     tip_received_text = tip_received_text + "  \n\nGo to the [wiki]" + \
-                         "(https://np.reddit.com/r/bananocoin/wiki/reddit-tipbot) for more info"
+                         "(https://np.reddit.com/r/banano/wiki/reddit-tipbot) for more info"
                     dm_subject = 'You were tipped %s Banano by /u/%s' % (formatted_amount, comment.author.name)
                     self.reddit_client.redditor(receiving_user).message(dm_subject, tip_received_text)
                 else:
@@ -104,14 +104,14 @@ class Tipper:
                     self.comment_reply(comment, reply_text, dm_subject=dm_subject)
         except TypeError as e:
             reply_message = 'Ooops, I seem to have broken.\n\n' + \
-                            ' Paging /u/chocolatefudcake error id: ' + comment.fullname + '\n\n'
+                            ' Paging /u/chocolatefudcake TypeError id: ' + comment.fullname + '\n\n'
             self.comment_reply(comment, reply_message, dm_subject='Reddit TipBot Error', dm_fallback='chocolatefudcake')
             tb = traceback.format_exc()
             self.log.error(e)
             self.log.error(tb)
         except:
             reply_message = 'Ooops, I seem to have broken.\n\n' + \
-                            ' Paging /u/chocolatefudcake error id: ' + comment.fullname + '\n\n'
+                            ' Paging /u/chocolatefudcake generic error: ' + comment.fullname + '\n\n'
             self.comment_reply(comment, reply_message, dm_subject='Reddit TipBot Error', dm_fallback='chocolatefudcake')
             self.log.error("Unexpected error in send_tip: " + str(sys.exc_info()[0]))
             tb = traceback.format_exc()
@@ -162,7 +162,7 @@ class Tipper:
             self.log.info('Sender NOT in db')
             reply_text = 'Hi /u/' + str(comment.author.name) + ', please register by sending me a' \
                          + ' private message with the text "register" in the body of the message.  \n\nGo to the [wiki]' + \
-                         "(https://np.reddit.com/r/bananocoin/wiki/reddit-tipbot) for more info"
+                         "(https://np.reddit.com/r/banano/wiki/reddit-tipbot) for more info"
 
             self.comment_reply(comment, reply_text, dm_subject='Not registered with Banano TipBot')
 
@@ -212,14 +212,14 @@ class Tipper:
         if comment.author.name.lower() != 'banano_tipbot':
             if mention:
                 self.comment_reply(comment, 'Was I mentioned? I could not parse your request  \n\nGo to the [wiki]' +
-                                   '(https://np.reddit.com/r/bananocoin/wiki/reddit-tipbot) to learn how to tip with' +
+                                   '(https://np.reddit.com/r/banano/wiki/reddit-tipbot) to learn how to tip with' +
                                    ' BANANO')
             else:
                 self.comment_reply(comment,
                                    'Tip command is invalid. Tip with any of the following formats:  \n\n' +
                                    '`!tipbanano <username> <amount>`  \n\n`!ban <username> <amount>`  \n\n'
                                    + '`/u/banano_tipbot <username> <amount>`  \n\nGo to the [wiki]' +
-                                   '(https://np.reddit.com/r/bananocoin/wiki/reddit-tipbot) for more commands')
+                                   '(https://np.reddit.com/r/banano/wiki/reddit-tipbot) for more commands')
         record = dict(
             comment_id=comment.fullname, to=None, amount=None, author=comment.author.name)
         self.log.info("Inserting into db: " + str(record))
@@ -254,6 +254,8 @@ class Tipper:
         return False
 
     def process_single_parameter_tip(self, comment, amount):
+        # initialize skip deleted variable 
+        is_skipped = 0
         # Is this a root comment?
         is_root = comment.is_root
         self.log.info("Root comment? " + str(comment.is_root))
@@ -262,11 +264,25 @@ class Tipper:
         else:
             # Get parent
             parent = comment.parent()
-            receiving_user = parent.author.name
-            self.log.info("Parent: ")
-            self.log.info(vars(parent))
-
-        self.process_command(comment, receiving_user, amount)
+            try:
+                self.log.info("Trying to tip this parent: ")
+                self.log.info(vars(parent))
+                receiving_user = parent.author.name
+            except:
+                # redefine variable if parent does not exist anymore 
+                is_skipped = 1
+                self.log.info("Parent apparently does not exist anymore. skipping.")
+                # Add to db so it'll be ignored next run
+                record = dict(
+                    comment_id=comment.fullname, to='unknown-deleted', amount=amount, author=comment.author.name)
+                self.log.info("Inserting into db: " + str(record))
+                comment_table = self.db['comments']
+                comment_table.insert(record)
+                self.log.info('DB updated with skipped comment')
+                
+        # skip if parent was deleted
+        if (not is_skipped):
+            self.process_command(comment, receiving_user, amount)
 
     def parse_tip(self, comment, parts_of_comment, command_index, mention):
         # get a reference to the table 'comments'
