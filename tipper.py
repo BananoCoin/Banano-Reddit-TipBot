@@ -79,7 +79,7 @@ class Tipper:
 
                 # check amount left
                 if int(rai_send) <= int(rai_balance['amount']):
-                    self.log.info('Tipping now')
+                    self.log.info( 'comment ' + comment.fullname + ' ' + comment.author.name + ' ' + sender_user_address + ' tipping ' + receiving_address + ' now ')
                     data = {'action': 'send', 'wallet': self.wallet_id, 'source': sender_user_address,
                             'destination': receiving_address, 'amount': int(raw_send)}
                     post_body = self.rest_wallet.post_to_wallet(data, self.log)
@@ -148,7 +148,7 @@ class Tipper:
 
                 # Add to database
                 record = dict(user_id=receiving_user, ban_address=post_body['account'])
-                self.log.info("Inserting into db: " + str(record))
+                self.log.info("Inserting into 'user' db table: " + str(record))
                 user_table.insert(record)
                 receiving_address = post_body['account']
 
@@ -169,7 +169,7 @@ class Tipper:
         # Add to db
         record = dict(
             comment_id=comment.fullname, to=receiving_user, amount=amount, author=comment.author.name)
-        self.log.info("Inserting into db: " + str(record))
+        self.log.info("Inserting into 'comments' db table: " + str(record))
         comment_table.insert(record)
         self.log.info('DB updated')
 
@@ -222,7 +222,7 @@ class Tipper:
                                    '(https://np.reddit.com/r/banano/wiki/reddit-tipbot) for more commands')
         record = dict(
             comment_id=comment.fullname, to=None, amount=None, author=comment.author.name)
-        self.log.info("Inserting into db: " + str(record))
+        self.log.info("Inserting into 'comments' db table: " + str(record))
         comment_table.insert(record)
         self.log.info('DB updated')
 
@@ -275,10 +275,9 @@ class Tipper:
                 # Add to db so it'll be ignored next run
                 record = dict(
                     comment_id=comment.fullname, to='unknown-deleted', amount=amount, author=comment.author.name)
-                self.log.info("Inserting into db: " + str(record))
+                self.log.info("Inserting skipped deleted comment into 'comments' db table: " + str(record))
                 comment_table = self.db['comments']
                 comment_table.insert(record)
-                self.log.info('DB updated with skipped comment')
                 
         # skip if parent was deleted
         if (not is_skipped):
@@ -290,8 +289,10 @@ class Tipper:
 
         # Save the comment id in a database so we don't repeat this
         if comment_table.find_one(comment_id=comment.fullname):
-            self.log.info('Already in db, ignore')
+            self.log.info(comment.fullname + ' already in db, ignore')
         else:
+            self.log.info('Comment is not in database yet:')
+            self.log.info((vars(comment)))
             author = comment.author.name.lower()
             try:
                 subreddit_name = comment.subreddit.display_name;
@@ -333,7 +334,7 @@ class Tipper:
                 # Add to db
                 record = dict(
                     comment_id=comment.fullname, to=None, amount=None, author=comment.author.name)
-                self.log.info("Inserting into db: " + str(record))
+                self.log.info("Inserting into 'comments' db table: " + str(record))
                 comment_table.insert(record)
                 self.log.info('DB updated')
 
@@ -346,10 +347,7 @@ class Tipper:
                 command = command.lower()
                 if command in parts_of_comment and not found:
                     found = True
-                    self.log.info('\n\n')
-                    self.log.info('Found tip reference in comments')
-                    self.log.info("Comment is as follows:")
-                    self.log.info((vars(comment)))
+                    self.log.info('Found tip reference in comments.')
 
                     command_index = parts_of_comment.index(command)
                     self.parse_tip(comment, parts_of_comment, command_index, mention)
