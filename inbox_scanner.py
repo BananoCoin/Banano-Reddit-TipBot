@@ -6,7 +6,7 @@ import prawcore
 
 import util
 
-import time
+#import time
 
 class InboxScanner:
 
@@ -98,26 +98,46 @@ class InboxScanner:
     def process_mention(self, item):
         comment = None
         command = ["/u/Banano_TipBot", "u/Banano_TipBot"]
+        message_table = self.db['message'] #only needed in case of exceptions to add skipping entries
         try:
             self.log.info("Mention Found")
             comment_parts = item.name.split("_")
             comment_id = comment_parts[len(comment_parts) - 1]
             self.log.info("Comment ID: " + comment_id)
             comment = self.reddit_client.comment(comment_id)
-
             submission_parts = comment.link_id.split("_")
             submission_id = submission_parts[len(submission_parts) - 1]
             submission = self.reddit_client.submission(submission_id)
             comment.link_author = submission.author.name
-
-        except:
-            reply_message = 'Ooops it seems I have broken.\n\n' + \
-                            ' Paging /u/chocolatefudcake error id: ' + item.name + '\n\n'
+        except AttributeError:
+            reply_message = 'Could not execute tip because parent author was not found.\n\n' + \
+                            ' Also paging /u/chocolatefudcake AttributeError id: ' + item.name + '\n\n'
             item.reply(reply_message)
+            record = dict(user_id=None, message_id=item.name)
+            self.log.info("skipping comment_id permanently: " + comment_id)
+            # comment_id will look like this  eyi9e1w  whereas item.name will look like this t1_eyi9e1w
+            message_table.insert(record)
+            comment = None
+            self.log.error("AttributeError: " + str(sys.exc_info()[0]))
+            tb = traceback.format_exc()
+            self.log.error(tb)
+            
+        except:
+            try:
+                reply_message = 'Could not execute tip. Will not retry. Check if parent post is deleted. \n\n' + \
+                                ' Paging /u/chocolatefudcake error id: ' + item.name + '\n\n'
+                item.reply(reply_message)
+            except:
+                self.log.error("Can not reply because comments probably are locked.")
+                #APIException: THREAD_LOCKED: 'Comments are locked.' on field 'parent'
+            record = dict(user_id=None, message_id=item.name)
+            self.log.info("skipping comment_id permanently: " + comment_id)
+            message_table.insert(record)
+            comment = None
             self.log.error("Unexpected error: " + str(sys.exc_info()[0]))
             tb = traceback.format_exc()
             self.log.error(tb)
-
+            
         if comment is not None:
             self.tipper.parse_comment(comment, command, True)
 
@@ -126,7 +146,7 @@ class InboxScanner:
         message_table = self.db['message']
 
         if message_table.find_one(message_id=item.name):
-            self.log.info("Already in db, ignore \n")
+            self.log.info(item.name + " already in db, ignore.")
         else:
             author_obj = item.author
             if author_obj is not None:
@@ -229,8 +249,9 @@ class InboxScanner:
             self.log.error("could not log in because: " + str(e))
             tb = traceback.format_exc()
             self.log.error(tb)
+            self.log.error('The thread probably is locked so item.reply(reply_message) will not work and therefore you should delete the mention in' + item.context)
 
     def run_scan_loop(self):
         while 1:
-            time.sleep(5)
+            #time.sleep(20)
             self.scan_inbox()
