@@ -40,21 +40,21 @@ class Tipper:
 
     def send_tip(self, comment, amount, sender_user_address, receiving_address, receiving_user, prior_reply_text):
         try:
-            rate = util.get_price()
-            if rate is None:
-                raise ValueError('Could not retrieve rate')
-
-            formatted_rate = str(format(float(rate), '.3f'))
+#             rate = util.get_price()
+#             if rate is None:
+#                raise ValueError('Could not retrieve rate')
+#
+#            formatted_rate = str(format(float(rate), '.3f'))
             formatted_amount = amount
-            if self.is_usd(amount):
-                amount = amount[1:]
-                usd = amount
-                formatted_usd = usd
-                amount = float(amount) / rate
-                formatted_amount = str(format(float(amount), '.2f'))
-            else:
-                usd = float(amount) * rate
-                formatted_usd = str(format(float(usd), '.3f'))
+#            if self.is_usd(amount):
+#                amount = amount[1:]
+#                usd = amount
+#                formatted_usd = usd
+#                amount = float(amount) / rate
+#                formatted_amount = str(format(float(amount), '.2f'))
+#            else:
+#                usd = float(amount) * rate
+#                formatted_usd = str(format(float(usd), '.3f'))
 
             self.log.info("Sending amount: " + str(amount) + "BANANO")
             data = {'action': 'account_balance',
