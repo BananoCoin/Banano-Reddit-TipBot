@@ -63,13 +63,14 @@ class InboxScanner:
         user_address = user_data['ban_address']
         data = {'action': 'account_balance', 'account': user_address}
         parsed_json = self.rest_wallet.post_to_wallet(data, self.log)
-        xrb_balance = format(str(util.raw_to_banano(int(parsed_json['balance']))), '.2f')
-        rate = util.get_price()
-        if rate is not None:
-            usd = float(xrb_balance) * rate
-            reply_message = 'Your balance is :\n\n %s BANANO' % xrb_balance
-        else:
-            reply_message = 'Your balance is :\n\n %s BANANO' % xrb_balance
+        ban_balance = util.raw_to_banano(int(parsed_json['balance']))
+        self.log.info(str(ban_balance) + ' xrb balance')  
+        #rate = util.get_price()
+        #if rate is not None:
+        #    usd = float(xrb_balance) * rate
+        #    reply_message = 'Your balance is :\n\n %s BANANO' % xrb_balance
+        #else:
+        reply_message = 'Your balance is :\n\n %s BANANO' % ban_balance
         item.reply(reply_message)
 
     def register_account(self, item, user_table):
