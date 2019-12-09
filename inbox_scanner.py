@@ -26,13 +26,10 @@ class InboxScanner:
             user_address = user_data['ban_address']
             data = {'action': 'account_balance', 'account': user_address}
             parsed_json = self.rest_wallet.post_to_wallet(data, self.log)
-            data = {'action': 'banoshi_from_raw', 'amount': int(parsed_json['balance'])}
-            rai_balance = self.rest_wallet.post_to_wallet(data, self.log)
 
-            rai_send = float(amount) * 100  # float of total send
-            raw_send = str(int(rai_send)) + '000000000000000000000000000'
+            raw_send = str(util.banano_to_raw(float(amount)))
             # check amount left
-            if int(rai_send) <= int(rai_balance['amount']):
+            if int(raw_send) <= int(parsed_json['balance']):
                 data = {'action': 'send', 'wallet': self.wallet_id, 'source': user_address, 'destination': send_address,
                         'amount': int(raw_send)}
                 parsed_json = self.rest_wallet.post_to_wallet(data, self.log)
@@ -66,11 +63,7 @@ class InboxScanner:
         user_address = user_data['ban_address']
         data = {'action': 'account_balance', 'account': user_address}
         parsed_json = self.rest_wallet.post_to_wallet(data, self.log)
-
-        data = {'action': 'banoshi_from_raw', 'amount': int(parsed_json['balance'])}
-        rai_balance = self.rest_wallet.post_to_wallet(data, self.log)
-        self.log.info(rai_balance['amount'])
-        xrb_balance = format((float(rai_balance['amount']) / 100.0), '.2f')
+        xrb_balance = format(str(util.raw_to_banano(int(parsed_json['balance']))), '.2f')
         rate = util.get_price()
         if rate is not None:
             usd = float(xrb_balance) * rate

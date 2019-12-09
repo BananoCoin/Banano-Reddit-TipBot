@@ -60,16 +60,12 @@ class Tipper:
             data = {'action': 'account_balance',
                     'account': sender_user_address}
             post_body = self.rest_wallet.post_to_wallet(data, self.log)
-            data = {'action': 'banoshi_from_raw', 'amount': int(
-                post_body['balance'])}
-            rai_balance = self.rest_wallet.post_to_wallet(data, self.log)
 
             # float of total send
             float_amount = float(amount)
             if float_amount > 0:
-                rai_send = float_amount * 100
-                raw_send = str(int(rai_send)) + '000000000000000000000000000'
-                self.log.info("Current rai balance: " + str(rai_balance['amount']))
+                raw_send = str(util.banano_to_raw(float_amount))
+                self.log.info("Current rai balance: " + str(util.raw_to_banano(int(post_body['balance']))))
 
                 # Add prior reply text to new
                 reply_text = ""
@@ -78,7 +74,7 @@ class Tipper:
                     reply_text = prior_reply_text + "\n\n"
 
                 # check amount left
-                if int(rai_send) <= int(rai_balance['amount']):
+                if int(raw_send) <= int(post_body['balance']):
                     self.log.info( 'comment ' + comment.fullname + ' ' + comment.author.name + ' ' + sender_user_address + ' tipping ' + receiving_address + ' now ')
                     data = {'action': 'send', 'wallet': self.wallet_id, 'source': sender_user_address,
                             'destination': receiving_address, 'amount': int(raw_send)}
