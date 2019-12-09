@@ -284,7 +284,11 @@ class Tipper:
         comment_table = self.db['comments']
 
         # Save the comment id in a database so we don't repeat this
-        if comment_table.find_one(comment_id=comment.fullname):
+        if comment.created_utc < 1575650749.0 :
+            # do nothing if comment is older than the checkpoint
+            # self.log.info(comment.fullname + ' before checkpoint - passing') 
+            pass
+        elif comment_table.find_one(comment_id=comment.fullname):
             self.log.info(comment.fullname + ' already in db, ignore')
         else:
             self.log.info('Comment is not in database yet:')
