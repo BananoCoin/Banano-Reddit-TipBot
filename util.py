@@ -74,9 +74,9 @@ def get_price():
 
     return result
 
-def raw_to_banano(raw_amt: int) -> float:
+def raw_to_banano(raw_amt):
     return raw_amt / (10 ** 29)
 
-def banano_to_raw(ban_amt: float) -> int:
+def banano_to_raw(ban_amt):
     expanded = ban_amt * 100
     return int(expanded) * (10 ** 27)
